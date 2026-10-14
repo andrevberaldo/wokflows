@@ -10,7 +10,16 @@ Seu papel é coordenar subagentes e manter SEU contexto pequeno:
 - Passe aos agentes apenas caminhos e parâmetros, nunca conteúdo colado.
 - Execute as etapas em ordem. Se um agente retornar `falhou`/`bloqueado`, pare e reporte ao usuário o motivo e o próximo passo sugerido.
 
-Flags: `--tech high` (ou `--tech=high`) eleva o nível técnico; sem a flag o nível é `lean`; `--yes` pula apenas o gate de aprovação do design (a aprovação da spec é sempre obrigatória); `--commit` faz commit ao final.
+## Persistência no repositório (obrigatória)
+Toda documentação gerada pelo fluxo — `docs/**`, `.claude/workflow/project.md`, `README*`, `CHANGELOG.md` e `specs/<slug>/*` — **precisa terminar gravada em arquivo e commitada no repositório**. Retorno de agente, resumo no chat ou contexto de memória não contam como documentação.
+- Lance todos os agentes na árvore de trabalho principal (nunca com `isolation: worktree`), para que os arquivos que eles escrevem fiquem no repositório.
+- **Verifique após cada agente**: todo caminho citado em `ARQUIVOS`/`SPEC`/`DESIGN`/`TASKS`/`REVIEW` deve existir e não estar vazio (`test -s <caminho>`). Se faltar algum, relance o agente uma vez pedindo explicitamente que grave o arquivo; se faltar de novo, pare e reporte.
+- **Checkpoint de documentação** (sempre, independe de `--commit`): ao fim das etapas indicadas abaixo, rode
+  `git add -- <caminhos> && git commit -m "<mensagem>" -- <caminhos>`
+  com **apenas** os caminhos de documentação daquela etapa (o `-- <caminhos>` garante que código em andamento não entra no commit). Se não houver mudança nesses caminhos, pule. Antes do primeiro checkpoint, confira `git check-ignore -v docs specs .claude/workflow/project.md`; se algum estiver ignorado, pergunte ao usuário antes de prosseguir (não use `git add -f` por conta própria). Se o commit falhar (hook, repo sem git), não use `--no-verify`: reporte ao usuário e mantenha os arquivos.
+- Não faça push por conta própria; no resumo final informe os commits de documentação criados para o usuário fazer push.
+
+Flags: `--tech high` (ou `--tech=high`) eleva o nível técnico; sem a flag o nível é `lean`; `--yes` pula apenas o gate de aprovação do design (a aprovação da spec é sempre obrigatória); `--commit` faz commit do código ao final (a documentação é sempre commitada nos checkpoints).
 
 ## Nível técnico (defina antes de tudo)
 1. Extraia de `$ARGUMENTS` a flag `--tech`. Valores aceitos: `high`. Ausente (ou `--tech lean`) → `tech_level = lean`. Valor desconhecido → pergunte ao usuário. Remova a flag do texto do pedido antes de repassá-lo aos agentes.
@@ -24,7 +33,8 @@ Flags: `--tech high` (ou `--tech=high`) eleva o nível técnico; sem a flag o n�
    - Repo pequeno/médio (≲ 300 arquivos rastreados — confira com `git ls-files | wc -l`): um único `repo-documenter` com `scope=all, mode=full`.
    - Repo grande: liste os módulos de topo (`git ls-files | cut -d/ -f1-2 | sort -u`), lance um `repo-documenter` por módulo em paralelo (`mode=module`), depois um final com `mode=index`.
    - Se a doc existir mas faltar só `.claude/workflow/project.md`, rode `repo-documenter` com `mode=index`.
-4. Avise o usuário em uma linha que a documentação foi criada (é um ganho permanente para as próximas features).
+4. Verifique os arquivos retornados e faça o checkpoint de documentação com `docs/` e `.claude/workflow/project.md` — mensagem `docs: documentação inicial do repositório`.
+5. Avise o usuário em uma linha que a documentação foi criada e commitada (é um ganho permanente para as próximas features).
 
 ## Etapa 1 — Spec interativa (só avança com aprovação explícita)
 A spec é construída **em conversa com o desenvolvedor**. Subagentes não conversam com o usuário: você faz a ponte, em rodadas.
@@ -42,7 +52,7 @@ A spec é construída **em conversa com o desenvolvedor**. Subagentes não conve
    - `Cancelar` — encerra, mantendo os artefatos.
 5. Se `Ajustar` (ou se houve respostas/decisões nos passos 3–4): lance `spec-writer` com `spec_dir`, `tech_level` e `feedback` (as respostas, as decisões por `SG-n` e os pedidos de ajuste, em texto curto) e volte ao passo 3. **Não há limite de rodadas**; repita até a aprovação ou o cancelamento.
 6. **Regra de ouro:** só considere a spec aprovada quando o desenvolvedor escolher explicitamente `Aprovar spec` (ou disser com todas as letras que aprova). Silêncio, "ok", "continua" ou respostas a dúvidas NÃO são aprovação — se houver ambiguidade, pergunte de novo. `--yes` **não** pula esta etapa. Não avance enquanto restar alguma `SG-n` com `Decisão: pendente` sem que o desenvolvedor tenha ciência: pergunte uma última vez se quer decidir ou adiar (adiadas ficam registradas como `rejeitada (adiada)` na spec).
-7. Ao receber a aprovação: altere a linha `**Status:**` de `spec.md` para `aprovada` (edição pontual com `sed`/Edit) e só então siga para a Etapa 2.
+7. Ao receber a aprovação: altere a linha `**Status:**` de `spec.md` para `aprovada` (edição pontual com `sed`/Edit), faça o checkpoint de documentação com `specs/<slug>/` — mensagem `docs(spec): <título da spec>` — e só então siga para a Etapa 2. (Se o usuário cancelar, faça o mesmo checkpoint com a spec em `rascunho`, para não perder o trabalho.)
 
 ## Etapa 2 — Design
 Lance `architect` com `spec_dir` e `tech_level`.
@@ -51,6 +61,8 @@ Lance `architect` com `spec_dir` e `tech_level`.
 Mostre ao usuário, em até ~15 linhas: objetivo, lista de ACs (só os títulos), resumo da abordagem e riscos do architect, nº de tarefas/lotes. Pergunte: aprovar / ajustar / cancelar.
 - Ajustar → se mudar requisitos, volte à Etapa 1 (spec volta a `rascunho` e exige nova aprovação explícita); se for só técnico, relance `architect` com o feedback e volte ao gate.
 - Cancelar → pare, mantendo os artefatos.
+
+Ao aprovar (ou com `--yes`), e também ao cancelar, faça o checkpoint de documentação com `specs/<slug>/` — mensagem `docs(design): <título da spec>`.
 
 ## Etapa 4 — Implementação
 Para cada lote em `tasks.md` (descubra os nomes dos lotes com `grep -n '^## Lote' <spec_dir>/tasks.md`), em ordem, lance `implementer` com `spec_dir`, `tech_level` e `batch`. Um lote por chamada (contexto fresco = mais barato e mais focado). Pare em `falhou`/`bloqueado`.
@@ -61,8 +73,12 @@ Para cada lote em `tasks.md` (descubra os nomes dos lotes com `grep -n '^## Lote
 3. Se ainda houver bloqueantes após a rodada 2, pare e reporte ao usuário os bloqueantes restantes — não entre em loop.
 
 ## Etapa 6 — Documentação
-Lance `doc-writer` com `spec_dir` e `tech_level`.
+1. Lance `doc-writer` com `spec_dir` e `tech_level`.
+2. Se ele retornar `sem_docs` (não existe `docs/`), rode o `repo-documenter` como na Etapa 0 e depois relance o `doc-writer`.
+3. Verifique os arquivos retornados e faça o checkpoint de documentação com `specs/<slug>/` + os arquivos de documentação listados em `ARQUIVOS` (`docs/**`, `README*`, `CHANGELOG.md`, `.claude/workflow/project.md`) — mensagem `docs: atualiza documentação de <título da spec>`.
+
+Se o fluxo parar antes desta etapa (falha, bloqueio, review com bloqueantes restantes), faça mesmo assim o checkpoint de `specs/<slug>/` antes de reportar ao usuário.
 
 ## Etapa 7 — Encerramento
-1. Se `--commit`: `git add -A` e commit com mensagem `feat: <título da spec>` + referência a `specs/<slug>/`.
-2. Resumo final ao usuário (máx. ~12 linhas): artefatos em `specs/<slug>/`, ACs atendidos X/Y, checks, docs atualizadas, sugestões não bloqueantes pendentes, e se houve commit.
+1. Se `--commit`: `git add -A` e commit com mensagem `feat: <título da spec>` + referência a `specs/<slug>/` (a documentação já foi commitada nos checkpoints; este commit leva o código e os testes).
+2. Resumo final ao usuário (máx. ~12 linhas): artefatos em `specs/<slug>/`, ACs atendidos X/Y, checks, docs atualizadas, commits de documentação criados (hash curto + mensagem), sugestões não bloqueantes pendentes, e se houve commit do código.

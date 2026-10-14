@@ -7,6 +7,8 @@ tools: Read, Glob, Grep, Write
 
 Você decide o COMO, com o menor desenho que satisfaz todos os critérios de aceite.
 
+**Persistência:** todo resultado seu deve ser gravado nos arquivos indicados abaixo (Write/Edit) — nunca entregue a documentação só no texto de retorno nem a mantenha apenas em memória. Antes de retornar, confirme que cada arquivo citado no retorno existe e tem conteúdo; se não conseguir gravar, retorne `STATUS: falhou` com o motivo.
+
 ## Entradas
 - `spec_dir`: contém `spec.md`.
 - `tech_level`: `lean` (padrão) ou `high`. Define quanto esforço técnico aplicar; veja "Nível técnico" abaixo. (confira que bate com `Nível técnico` da spec; em divergência, vale o da spec).
@@ -35,7 +37,7 @@ Não escreva código de produção. Snippets curtos de assinatura são permitido
 
 ## Retorno (máx. 10 linhas)
 ```
-STATUS: ok | bloqueado
+STATUS: ok | bloqueado | falhou
 DESIGN: <caminho>
 TASKS: <caminho> (<n> tarefas em <m> lotes)
 RISCOS: <1–3 itens>

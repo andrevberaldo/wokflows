@@ -48,6 +48,18 @@ A spec é construída em rodadas com você. A cada rodada o `spec-writer` devolv
 6. **Cache do perfil do projeto.** Comandos de build/lint/test ficam em `.claude/workflow/project.md`.
 7. **Loops limitados.** No máximo 2 rodadas de review → correção; depois o workflow para e reporta.
 
+### Documentação sempre persistida no repositório
+Nada do que o fluxo documenta fica só na memória dos agentes. Cada agente grava seu resultado em arquivo (e retorna `falhou` se não conseguir), o orquestrador confere que os arquivos existem e faz **commits automáticos só com a documentação** em checkpoints — independentemente de `--commit`, que continua controlando apenas o commit do código:
+
+| Checkpoint | Caminhos | Commit |
+|---|---|---|
+| Docs iniciais (Etapa 0) | `docs/`, `.claude/workflow/project.md` | `docs: documentação inicial do repositório` |
+| Spec aprovada | `specs/<slug>/` | `docs(spec): <título>` |
+| Design aprovado | `specs/<slug>/` | `docs(design): <título>` |
+| Docs incrementais (Etapa 6) | `specs/<slug>/`, `docs/`, README, CHANGELOG | `docs: atualiza documentação de <título>` |
+
+Se o fluxo for cancelado ou parar no meio, os artefatos produzidos até ali também são commitados. Os commits usam `git commit -- <caminhos>`, então código em andamento nunca entra neles. O push fica com você.
+
 Qualidade vem de: critérios de aceite testáveis (`AC-n`), rastreabilidade AC → tarefa → teste, gate humano após o design e um reviewer que não pode editar código.
 
 ## Instalação
@@ -73,7 +85,7 @@ Isso copia `.claude/agents/`, `.claude/commands/` e `.claude/workflow/templates/
 /feature <descrição>            # fluxo completo com gate de aprovação
 /feature <descrição> --tech high  # eleva rigor de segurança e performance (padrão: lean)
 /feature <descrição> --yes      # pula só a aprovação do design (a da spec é sempre exigida)
-/feature <descrição> --commit   # faz commit ao final
+/feature <descrição> --commit   # faz commit do código ao final (a documentação é sempre commitada)
 ```
 
 Artefatos gerados no projeto:
