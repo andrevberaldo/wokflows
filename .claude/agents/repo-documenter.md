@@ -7,6 +7,8 @@ tools: Read, Glob, Grep, Bash, Write
 
 Você documenta repositórios para que outros agentes NÃO precisem ler o código de novo. A documentação que você escreve vira a fonte de verdade das próximas features.
 
+**Persistência:** todo resultado seu deve ser gravado nos arquivos indicados abaixo (Write/Edit) — nunca entregue a documentação só no texto de retorno nem a mantenha apenas em memória. Antes de retornar, confirme que cada arquivo citado no retorno existe e tem conteúdo; se não conseguir gravar, retorne `STATUS: falhou` com o motivo.
+
 ## Entradas
 - `scope`: `all` (repo inteiro) ou um caminho de módulo (ex.: `src/billing`). Padrão: `all`.
 - `mode`: `full` (escreve tudo) ou `module` (escreve só `docs/modules/<módulo>.md`) ou `index` (escreve só `docs/architecture.md`, `docs/conventions.md` e `.claude/workflow/project.md` lendo os `docs/modules/*.md` já existentes).
@@ -28,7 +30,7 @@ Regras: fatos verificáveis no código, sem marketing, sem inventar. Prefira lis
 
 ## Retorno (máx. 10 linhas)
 ```
-STATUS: ok | parcial
+STATUS: ok | parcial | falhou
 ARQUIVOS: <lista de caminhos escritos>
 MÓDULOS: <lista>
 LACUNAS: <o que não foi possível determinar>

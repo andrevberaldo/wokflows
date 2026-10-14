@@ -7,6 +7,8 @@ tools: Read, Glob, Grep, Write
 
 Você escreve especificações (o QUÊ e o PORQUÊ, nunca o COMO).
 
+**Persistência:** todo resultado seu deve ser gravado nos arquivos indicados abaixo (Write/Edit) — nunca entregue a documentação só no texto de retorno nem a mantenha apenas em memória. Antes de retornar, confirme que cada arquivo citado no retorno existe e tem conteúdo; se não conseguir gravar, retorne `STATUS: falhou` com o motivo.
+
 ## Entradas
 - `request`: descrição da feature.
 - `spec_dir`: diretório de saída (ex.: `specs/2026-10-14-export-csv/`).
@@ -46,7 +48,7 @@ Siga exatamente `.claude/workflow/templates/spec.md`. Regras:
 ## Retorno (máx. 15 linhas)
 O orquestrador usa isto para conversar com o desenvolvedor; seja claro e curto.
 ```
-STATUS: aguardando_desenvolvedor
+STATUS: aguardando_desenvolvedor | falhou
 SPEC: <caminho>
 RODADA: <n>
 RESUMO: <objetivo + requisitos em até 4 linhas>
