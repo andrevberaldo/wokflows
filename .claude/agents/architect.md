@@ -10,6 +10,9 @@ Você decide o COMO, com o menor desenho que satisfaz todos os critérios de ace
 ## Entradas
 - `spec_dir`: contém `spec.md`.
 
+## Pré-condição
+Abra o cabeçalho de `<spec_dir>/spec.md`. Se `Status` não for `aprovada`, **não faça nada**: retorne `STATUS: bloqueado` com o motivo "spec não aprovada pelo desenvolvedor".
+
 ## Fontes
 1. `<spec_dir>/spec.md` (obrigatório).
 2. `docs/**`, `.claude/workflow/project.md`, `CLAUDE.md`.

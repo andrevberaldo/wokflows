@@ -11,14 +11,17 @@ Workflow para [Claude Code](https://claude.com/claude-code), agnóstico de stack
 | Etapa | Agente | Modelo | Saída |
 |---|---|---|---|
 | 0. Documentação (só se faltar) | `repo-documenter` | sonnet | `docs/`, `.claude/workflow/project.md` |
-| 1. Spec | `spec-writer` | opus | `specs/<slug>/spec.md` |
+| 1. Spec interativa (loop até você aprovar) | `spec-writer` + orquestrador | opus | `specs/<slug>/spec.md` |
 | 2. Design | `architect` | opus | `design.md`, `tasks.md` |
-| 3. Aprovação humana | — | — | (pule com `--yes`) |
+| 3. Aprovação do design | — | — | (pule com `--yes`) |
 | 4. Implementação (por lote) | `implementer` | sonnet | código + testes, tarefas marcadas |
 | 5. Review (≤ 2 rodadas de correção) | `reviewer` | sonnet | `review.md` |
 | 6. Documentação incremental | `doc-writer` | haiku | `docs/`, README, CHANGELOG |
 
 O orquestrador é a sessão principal executando `.claude/commands/feature.md`.
+
+### Spec interativa
+A spec é construída em rodadas com você. A cada rodada o `spec-writer` devolve um resumo, dúvidas e **sugestões de boas práticas e segurança** (`SG-n`: validação de entrada, autorização, dados sensíveis, injeção, rate limiting, observabilidade, idempotência etc., sempre específicas ao seu pedido). Você decide uma a uma; as aceitas viram requisitos e critérios de aceite testáveis. O fluxo **só avança para o design quando você escolhe explicitamente "Aprovar spec"** — não há limite de rodadas e `--yes` não pula essa etapa.
 
 ## Por que economiza tokens sem perder qualidade
 
@@ -53,7 +56,7 @@ Isso copia `.claude/agents/`, `.claude/commands/` e `.claude/workflow/templates/
 
 ```
 /feature <descrição>            # fluxo completo com gate de aprovação
-/feature <descrição> --yes      # sem gate de aprovação
+/feature <descrição> --yes      # pula só a aprovação do design (a da spec é sempre exigida)
 /feature <descrição> --commit   # faz commit ao final
 ```
 

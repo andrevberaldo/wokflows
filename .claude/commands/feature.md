@@ -10,7 +10,7 @@ Seu papel é coordenar subagentes e manter SEU contexto pequeno:
 - Passe aos agentes apenas caminhos e parâmetros, nunca conteúdo colado.
 - Execute as etapas em ordem. Se um agente retornar `falhou`/`bloqueado`, pare e reporte ao usuário o motivo e o próximo passo sugerido.
 
-Flags: `--yes` pula o gate de aprovação; `--commit` faz commit ao final.
+Flags: `--yes` pula apenas o gate de aprovação do design (a aprovação da spec é sempre obrigatória); `--commit` faz commit ao final.
 
 ## Etapa 0 — Documentação primeiro
 1. Use Glob (sem ler conteúdo) para checar: `docs/**/*.md`, `README*`, `CLAUDE.md`, `.claude/workflow/project.md`.
@@ -21,17 +21,30 @@ Flags: `--yes` pula o gate de aprovação; `--commit` faz commit ao final.
    - Se a doc existir mas faltar só `.claude/workflow/project.md`, rode `repo-documenter` com `mode=index`.
 4. Avise o usuário em uma linha que a documentação foi criada (é um ganho permanente para as próximas features).
 
-## Etapa 1 — Spec
+## Etapa 1 — Spec interativa (só avança com aprovação explícita)
+A spec é construída **em conversa com o desenvolvedor**. Subagentes não conversam com o usuário: você faz a ponte, em rodadas.
+
 1. Gere o slug: `<data de hoje yyyy-mm-dd>-<2–4 palavras em kebab-case>`; `spec_dir = specs/<slug>/`.
-2. Lance `spec-writer` com `request`, `spec_dir`.
-3. Se `STATUS: precisa_respostas`, pergunte ao usuário as DÚVIDAS (AskUserQuestion, com opções quando der) e relance `spec-writer` passando somente `answers`. No máximo 2 rodadas.
+2. **Rodada 1:** lance `spec-writer` com `request` e `spec_dir`.
+3. **Apresente a rodada ao desenvolvedor** (a partir do retorno do agente; leia `spec.md` só se precisar de um detalhe), em formato curto:
+   - Resumo e lista de ACs (id + título).
+   - **Dúvidas** — pergunte com AskUserQuestion, oferecendo opções quando houver um padrão sensato.
+   - **Sugestões de boas práticas e segurança** (`SG-n`): explique cada uma em 1–2 linhas e peça uma decisão por sugestão (aceitar / rejeitar / depois). Use AskUserQuestion com `multiSelect` para "quais aceitar", agrupando em lotes de até 4 por pergunta.
+   - Informe o caminho de `spec.md` para ele ler o texto completo se quiser.
+4. **Pergunte se ele aprova a spec**, sempre como pergunta separada e explícita (AskUserQuestion), com as opções:
+   - `Aprovar spec` — segue para o design.
+   - `Ajustar` — ele descreve o que mudar (campo "Other" ou texto livre).
+   - `Cancelar` — encerra, mantendo os artefatos.
+5. Se `Ajustar` (ou se houve respostas/decisões nos passos 3–4): lance `spec-writer` com `spec_dir` e `feedback` (as respostas, as decisões por `SG-n` e os pedidos de ajuste, em texto curto) e volte ao passo 3. **Não há limite de rodadas**; repita até a aprovação ou o cancelamento.
+6. **Regra de ouro:** só considere a spec aprovada quando o desenvolvedor escolher explicitamente `Aprovar spec` (ou disser com todas as letras que aprova). Silêncio, "ok", "continua" ou respostas a dúvidas NÃO são aprovação — se houver ambiguidade, pergunte de novo. `--yes` **não** pula esta etapa. Não avance enquanto restar alguma `SG-n` com `Decisão: pendente` sem que o desenvolvedor tenha ciência: pergunte uma última vez se quer decidir ou adiar (adiadas ficam registradas como `rejeitada (adiada)` na spec).
+7. Ao receber a aprovação: altere a linha `**Status:**` de `spec.md` para `aprovada` (edição pontual com `sed`/Edit) e só então siga para a Etapa 2.
 
 ## Etapa 2 — Design
 Lance `architect` com `spec_dir`.
 
-## Etapa 3 — Gate de aprovação (pule se `--yes`)
+## Etapa 3 — Gate de aprovação do design (pule se `--yes`; a aprovação da spec já foi dada na Etapa 1)
 Mostre ao usuário, em até ~15 linhas: objetivo, lista de ACs (só os títulos), resumo da abordagem e riscos do architect, nº de tarefas/lotes. Pergunte: aprovar / ajustar / cancelar.
-- Ajustar → repasse o feedback ao agente adequado (`spec-writer` com `answers` ou `architect`) e volte ao gate.
+- Ajustar → se mudar requisitos, volte à Etapa 1 (spec volta a `rascunho` e exige nova aprovação explícita); se for só técnico, relance `architect` com o feedback e volte ao gate.
 - Cancelar → pare, mantendo os artefatos.
 
 ## Etapa 4 — Implementação

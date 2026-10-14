@@ -1,7 +1,8 @@
 # Spec: <título>
 
 - **Slug:** <yyyy-mm-dd-slug>
-- **Status:** rascunho | aprovada
+- **Status:** rascunho | aprovada <!-- só o orquestrador muda para 'aprovada', após aprovação explícita do desenvolvedor -->
+- **Rodada:** 1
 - **Pedido original:** <1–2 linhas>
 
 ## Problema / objetivo
@@ -14,6 +15,10 @@
 ## Critérios de aceite
 - **AC-1** — Dado <contexto>, quando <ação>, então <resultado verificável>.
 - **AC-2** — ...
+
+## Sugestões (boas práticas e segurança)
+<!-- O spec-writer sugere; o desenvolvedor decide. Aceita → vira R-n e AC-n. -->
+- **SG-1** [segurança|boa prática] <título> — <por que importa; custo/impacto>. **Decisão:** pendente | aceita (→ R-n, AC-n) | rejeitada (<motivo>)
 
 ## Fora de escopo
 - ...
