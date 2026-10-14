@@ -20,6 +20,21 @@ Workflow para [Claude Code](https://claude.com/claude-code), agnóstico de stack
 
 O orquestrador é a sessão principal executando `.claude/commands/feature.md`.
 
+### Nível técnico: `--tech high`
+| | `lean` (padrão, sem flag) | `--tech high` |
+|---|---|---|
+| Filosofia | O mais simples que resolve, sem overengineering (YAGNI) | Simples onde der, rigoroso em segurança e performance |
+| Spec | Requisitos mínimos; até ~3 sugestões, só riscos reais e óbvios | + modelo de ameaças, requisitos de segurança e **NFRs de performance mensuráveis** (viram ACs); até ~8 sugestões |
+| Design | Reuso, mínimo de arquivos, sem novas abstrações/dependências | + controles concretos por ameaça, análise de complexidade/dados (N+1, índices, paginação, timeouts), tarefas de teste de segurança e carga |
+| Implementação | Só o pedido | + controles do design e testes de segurança/performance |
+| Review | Correção e ACs; aponta overengineering como sugestão | + passada de segurança (OWASP) e performance; falhas comprovadas são bloqueantes |
+
+```
+/feature adicionar upload de avatar              # lean
+/feature adicionar upload de avatar --tech high  # rigor em segurança e performance
+```
+O nível fica registrado no cabeçalho da spec e é repassado a todos os agentes.
+
 ### Spec interativa
 A spec é construída em rodadas com você. A cada rodada o `spec-writer` devolve um resumo, dúvidas e **sugestões de boas práticas e segurança** (`SG-n`: validação de entrada, autorização, dados sensíveis, injeção, rate limiting, observabilidade, idempotência etc., sempre específicas ao seu pedido). Você decide uma a uma; as aceitas viram requisitos e critérios de aceite testáveis. O fluxo **só avança para o design quando você escolhe explicitamente "Aprovar spec"** — não há limite de rodadas e `--yes` não pula essa etapa.
 
@@ -56,6 +71,7 @@ Isso copia `.claude/agents/`, `.claude/commands/` e `.claude/workflow/templates/
 
 ```
 /feature <descrição>            # fluxo completo com gate de aprovação
+/feature <descrição> --tech high  # eleva rigor de segurança e performance (padrão: lean)
 /feature <descrição> --yes      # pula só a aprovação do design (a da spec é sempre exigida)
 /feature <descrição> --commit   # faz commit ao final
 ```

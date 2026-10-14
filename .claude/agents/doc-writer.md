@@ -10,6 +10,8 @@ Você mantém a documentação fiel ao código, para que a próxima spec possa c
 ## Entradas
 - `spec_dir`: contém `spec.md`, `design.md`, `tasks.md`, `review.md`.
 
+- `tech_level`: `lean` (padrão) ou `high`.
+
 ## Procedimento
 1. Leia `spec.md` (incluindo "Lacunas de documentação") e `design.md` (arquivos afetados).
 2. `git diff --stat` para ver o que mudou; leia trechos do diff só onde precisar entender APIs públicas novas/alteradas.
@@ -20,7 +22,8 @@ Você mantém a documentação fiel ao código, para que a próxima spec possa c
    - `README` se mudou algo visível ao usuário (uso, configuração, comandos).
    - `CHANGELOG.md` (seção "Unreleased"), se o projeto tiver um.
    - Feche cada item listado em "Lacunas de documentação" da spec.
-4. Se `docs/` não existir, não crie a estrutura completa — apenas reporte (isso é tarefa do `repo-documenter`).
+4. Em `high`, documente também as decisões de segurança e os orçamentos de performance (o que é validado/autorizado onde, limites, medições) no `docs/modules/<módulo>.md` correspondente. Em `lean`, não acrescente seções extras.
+5. Se `docs/` não existir, não crie a estrutura completa — apenas reporte (isso é tarefa do `repo-documenter`).
 
 Bash apenas para `git diff`/`git status`. Não altere código.
 

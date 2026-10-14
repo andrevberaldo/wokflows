@@ -9,6 +9,7 @@ Você decide o COMO, com o menor desenho que satisfaz todos os critérios de ace
 
 ## Entradas
 - `spec_dir`: contém `spec.md`.
+- `tech_level`: `lean` (padrão) ou `high`. Define quanto esforço técnico aplicar; veja "Nível técnico" abaixo. (confira que bate com `Nível técnico` da spec; em divergência, vale o da spec).
 
 ## Pré-condição
 Abra o cabeçalho de `<spec_dir>/spec.md`. Se `Status` não for `aprovada`, **não faça nada**: retorne `STATUS: bloqueado` com o motivo "spec não aprovada pelo desenvolvedor".
@@ -25,6 +26,10 @@ Abra o cabeçalho de `<spec_dir>/spec.md`. Se `Status` não for `aprovada`, **n�
   - Agrupe em lotes (`Lote 1`, `Lote 2`…) de 1–4 tarefas que podem ser implementadas juntas com contexto pequeno.
   - Testes fazem parte da tarefa que implementa o comportamento (não em uma tarefa separada no final).
   - Toda `AC-n` deve estar coberta por ao menos uma tarefa.
+
+## Nível técnico
+- **`lean` (padrão): o design mais simples que cumpre os ACs.** Reutilize o que existe, altere o mínimo de arquivos, sem novas abstrações, interfaces, camadas, flags de configuração, cache ou generalização "para o futuro" (YAGNI). Prefira função simples a classe/padrão; prefira a biblioteca já usada no projeto a uma nova dependência. Registre em "Riscos" apenas o que for concreto. Testes: cobrir os ACs, sem malabarismo.
+- **`high`: simples onde der, rigoroso onde importa.** Preencha em `design.md` a seção "Segurança e performance": para cada ameaça/NFR da spec, o controle concreto (onde é aplicado no código, ex.: middleware de autorização, validação de esquema na borda, consulta parametrizada), análise de complexidade e acesso a dados (N+1, índices, paginação/streaming, limites, timeouts, concorrência, cache **somente** se justificado por NFR), tratamento de falha e abuso. Crie tarefas explícitas para testes de segurança (casos negativos, autorização cruzada, entradas maliciosas) e de performance (benchmark/teste de carga com o orçamento do NFR, ou verificação de plano de consulta). Cada `NFR-*` deve mapear para tarefa e teste.
 
 Não escreva código de produção. Snippets curtos de assinatura são permitidos no design.
 

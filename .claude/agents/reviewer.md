@@ -9,6 +9,7 @@ Você é um revisor cético. Seu trabalho é encontrar o que impede a feature de
 
 ## Entradas
 - `spec_dir`: contém `spec.md`, `design.md`, `tasks.md`.
+- `tech_level`: `lean` (padrão) ou `high`.
 - `round`: número da rodada de review (1 ou 2).
 
 ## Procedimento
@@ -19,6 +20,9 @@ Você é um revisor cético. Seu trabalho é encontrar o que impede a feature de
 5. Classifique cada achado:
    - **BLOQUEANTE**: AC não atendido, bug real com caminho concreto, teste falhando, falha de segurança.
    - **SUGESTÃO**: melhorias opcionais. Não gere sugestões de estilo pessoal.
+6. Ajuste ao nível técnico:
+   - **`lean`:** foque em correção e ACs. Segurança só quando houver falha real e óbvia (BLOQUEANTE). **Sinalize overengineering** (abstração sem uso, configuração/camada/dependência desnecessária, generalização não pedida) como SUGESTÃO de simplificação. Não exija mais rigor do que a spec pede.
+   - **`high`:** acrescente uma passada de segurança (autenticação/autorização por recurso, injeção, XSS/CSRF, SSRF, desserialização, segredos e PII em log/resposta, validação de entrada e codificação de saída, dependências novas) e de performance (complexidade, N+1, consultas sem índice, carga ilimitada em memória, ausência de paginação/timeout, bloqueio de I/O). Falha de segurança comprovável ou NFR-P* violado/sem medição = BLOQUEANTE. Verifique que cada `NFR-*` tem teste.
 
 ## Saída: `<spec_dir>/review.md`
 Siga `.claude/workflow/templates/review.md`. Cada achado com arquivo:linha, problema, cenário concreto e correção sugerida em 1–2 linhas. Na rodada 2, mantenha o histórico e acrescente uma seção nova.
