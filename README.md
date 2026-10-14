@@ -40,6 +40,13 @@ git clone <este repo> wokflows
 ./wokflows/install.sh /caminho/do/seu/projeto --force  # sobrescreve
 ```
 
+No Windows (PowerShell):
+
+```powershell
+.\wokflows\install.ps1 -Target C:\caminho\do\seu\projeto          # não sobrescreve arquivos existentes
+.\wokflows\install.ps1 -Target C:\caminho\do\seu\projeto -Force   # sobrescreve
+```
+
 Isso copia `.claude/agents/`, `.claude/commands/` e `.claude/workflow/templates/` para o projeto.
 
 ## Uso
@@ -73,5 +80,5 @@ specs/<yyyy-mm-dd-slug>/
   agents/            repo-documenter, spec-writer, architect, implementer, reviewer, doc-writer
   commands/          feature.md (orquestrador)
   workflow/templates spec, design, tasks, review
-install.sh
+install.sh / install.ps1
 ```
